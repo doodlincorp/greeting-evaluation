@@ -1,0 +1,9 @@
+spring:
+  config:
+    import:
+      - classpath:redis.yml
+  data:
+    redis:
+      host: ${/config/ats/dev/database/redis/host}
+      password: ${/config/ats/dev/database/redis/api/password}
+      username: "api-dev"

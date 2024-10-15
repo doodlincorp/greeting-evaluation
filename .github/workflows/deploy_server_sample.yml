@@ -1,0 +1,131 @@
+name: deploy_inter-noti-consumer_dev
+
+on:
+  workflow_dispatch:
+
+env:
+  ## AWS / EKS / ECR
+  AWS_REGION: ap-northeast-2
+  AWS_ECR_URL: 148109653756.dkr.ecr.ap-northeast-2.amazonaws.com # ECR URL
+  AWS_ECR_NAME: <INSERT BUILD_IMAGE_NAME>
+  AWS_ASSUME_ROLE_BUILD: arn:aws:iam::148109653756:role/Github-Actions-Role
+  ## if you deploy to prodcution, change this to arn:aws:iam::148109653756:role/Github-Actions-Role
+  AWS_ASSUME_ROLE_DEPLOY: arn:aws:iam::586828120235:role/Github-Actions-Role 
+  # ASSUME_ROLE_DEPLOY: arn:aws:iam::148109653756:role/Github-Actions-Role
+  AWS_ROLE_SESSION_NAME: github-actions-role
+  ## if you deploy to prodcution, change EKS_NAME to greeting
+  ## and deploy to stage or dev, change EKS_NAME to greeting-dev-cluster
+  AWS_CLUSTER_NAME: greeting-dev-cluster
+  
+  ## Container based image name
+  BASED_IMAGE_NAME: doodlin-base:amazoncorretto-17-alpine # or doodlin-base:amazoncorretto-21-alpine
+  
+  ## JIB
+  ### set BUILD_ENV to dev or stage or prod
+  BUILD_ENV: dev
+  ### set PROFILE to dev or stage or prod
+  PROFILE: dev
+  ### set SPRING_MODULE_NAME to your spring module name
+  SPRING_MODULE_NAME: <INSERT SPRING MODULE NAME>
+  ### JIB ARGUMENTS 
+  HEAP_SIZE: 1g
+  METASPACE_SIZE: 512m
+  INIT_METASPACE_SIZE: 128m
+  MAX_METASPACE_SIZE: 256m
+  MAX_METASPACE_FREE_RATIO: 60
+  ACTIVE_PROCESSOR_COUNT: 2
+  
+  ## CORALOGIX
+  CORALOGIX_API_KEY: ${{ secrets.CORALOGIX_API_KEY }}
+  CORALOGIX_SERVICE_NAME: <INSERT BUILD_IMAGE_NAME>
+
+  ## SLACK
+  SLACK_CHANNEL_ID: C01R7DP3TSB
+  ACTION_NAME: "<INSERT ACTION NAMNE For SlACK>" # ex) Greeting ATS2 Wno Consumer Dev New
+  LINK_URL: api.dev.greetinghr.com
+
+  ## HELM / OPERATOR
+  ## if you deploy to stage or prodcution, remove comment and chagne to VALUES_FILE_NAME to your helm value file
+  #VALUES_NAME: wno-consumer.dev.values.yaml
+  ## when you deploy to dev, if you want to use operator value file not named operator-app.yaml, remove comment and change to your operator  file
+  # OPERATOR_VALUE_FILE_NAME: <INSERT OPERATOR VALUE FILE> # ex) dev-operator.yaml
+  DEPLOY_NAME: <INSERT BUILD_IMAGE_NAME>
+  # when you deploy environment that is staging or production, use this and if you deploy to dev, comment this
+  # DEPLOY_ENV: staging 
+  
+  ## GITHUB
+  GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
+  GITHUB_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
+  
+  
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag-name: ${{ steps.build.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build and Push
+        id: build
+        uses: doodlincorp/actions/actions/universal-workflow/workflows/java-gradle-build@master
+        with:
+          java-version: '17'
+          slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel-id: ${{ env.SLACK_CHANNEL_ID }}
+          action-name: "${{env.ACTION_NAME}} Build"
+          role-to-assume: ${{ env.AWS_ASSUME_ROLE_BUILD }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+          build-env: ${{ env.BUILD_ENV }}
+          build-args: "-PawsEcrRepository=${{ ENV.AWS_ECR_URL }} -PbasedImageName=${{ ENV.BASED_IMAGE_NAME }} -PbuiltImageName=${{ ENV.AWS_ECR_NAME }} -Pprofile=${{ ENV.PROFILE }} -PheapSize=${{ ENV.HEAP_SIZE }} -PmetaspaceSize=${{ ENV.METASPACE_SIZE }} -PcoralogixApiKey=${{ ENV.CORALOGIX_API_KEY }} -PcoralogixServiceName=${{ ENV.CORALOGIX_SERVICE_NAME }} :${{ env.SPRING_MODULE_NAME }}:jib"
+          # build-args: "-PawsEcrRepository=${{ ENV.AWS_ECR_URL }} -PbasedImageName=${{ ENV.BASED_IMAGE_NAME }} -PbuiltImageName=${{ ENV.AWS_ECR_NAME }} -Pprofile=${{ ENV.PROFILE }} -PinitMetaspaceSize=${{ ENV.INIT_METASPACE_SIZE }} -PmaxMetaspaceSize=${{ ENV.MAX_METASPACE_SIZE }} -PmaxMetaspaceFreeRatio=${{ ENV.MAX_METASPACE_FREE_RATIO }} -PactiveProcessorCount=${{ ENV.ACTIVE_PROCESSOR_COUNT }} -PcoralogixApiKey=${{ ENV.CORALOGIX_API_KEY }} -PcoralogixServiceName=${{ ENV.CORALOGIX_SERVICE_NAME }} :${{ env.SPRING_MODULE_NAME }}:jib"
+          ecr-repository: ${{ env.AWS_ECR_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+          sentry-auth-token: ${{ secrets.BE_SENTRY_AUTH_TOKEN }}
+
+  deploy:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      ## if you deploy to dev or stage , use this, and if you deploy to prodcution, comment  this and remove comment to step that named Deploy Helm Chart
+      - name: Dispatch Core Chart
+        uses: doodlincorp/actions/actions/universal-workflow/workflows/dispatch-core-chart@master
+        with:
+          slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel-id: ${{ env.SLACK_CHANNEL_ID }}
+          action-name: "${{env.ACTION_NAME}} Deploy"
+          aws-region: ${{ env.AWS_REGION }}
+          application-name: ${{ env.DEPLOY_NAME }}
+          tag-name: ${{ needs.build.outputs.tag-name }}
+          cluster-name: ${{ env.AWS_CLUSTER_NAME }}
+          github-access-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          role-to-assume: ${{ env.AWS_ASSUME_ROLE_DEPLOY }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+          link-url: ${{ env.LINK_URL }}
+          # cronjob-name: ${{env.OPERATOR_VALUE_FILE_NAME}}
+
+      ## if you deploy to prodcution, remove comment and change to your helm value file
+      # - name: Deploy Helm Chart
+      #   uses: doodlincorp/actions/actions/universal-workflow/workflows/deploy-helm-chart@master
+      #   with:
+      #     slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
+      #     slack-channel-id: ${{ env.SLACK_CHANNEL_ID }}
+      #     link-url: ${{ env.LINK_URL }}
+      #     action-name: "${{env.ACTION_NAME}} Deploy"
+      #     role-to-assume: ${{ env.AWS_ASSUME_ROLE_DEPLOY }}
+      #     role-session-name: ${{ env.AWS_ROLE_SESSION_NAME }}
+      #     aws-region: ${{ env.AWS_REGION }}
+      #     cluster-name: ${{ env.AWS_CLUSTER_NAME }}
+      #     values-name: ${{env.VALUES_NAME}}
+      #     application-name: ${{ env.DEPLOY_NAME }}
+      #     tag-name: ${{ needs.build.outputs.tag-name }}
+      #     environment: ${{ env.DEPLOY_ENV }}

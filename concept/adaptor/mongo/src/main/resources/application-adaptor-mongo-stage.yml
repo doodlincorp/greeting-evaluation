@@ -1,0 +1,12 @@
+spring:
+  config:
+    import:
+      - classpath:mongo.yml
+  data:
+    mongodb:
+      primary:
+        host: cluster0.rfqya.mongodb.net
+        password: ${/config/ats/stage/database/mongo/api/password}
+      search:
+        host: cluster0.rfqya.mongodb.net
+        password: ${/config/ats/stage/database/mongo/api/password}

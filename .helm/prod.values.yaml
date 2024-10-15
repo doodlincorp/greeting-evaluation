@@ -1,0 +1,24 @@
+name: "<INSERT IMAGE NAME>"
+env: "prod"
+images:
+  repository: "148109653756.dkr.ecr.ap-northeast-2.amazonaws.com"
+  name: "<INSERT IMAGE NAME>"
+  pullPolicy: "Always"
+  tag: "latest"
+deployment:
+  replicaCount: 1
+  memoryRequest: "2000Mi"
+  memoryLimit: "4000Mi"
+featureTemplate:
+  deployment:
+    enabled: true
+  service:
+    enabled: true
+  ingress:
+    enabled: false
+  cronjob:
+    enabled: false
+  job:
+    enabled: false
+  serviceMonitor:
+    enabled: false

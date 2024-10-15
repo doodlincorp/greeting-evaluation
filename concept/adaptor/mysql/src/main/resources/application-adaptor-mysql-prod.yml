@@ -1,0 +1,15 @@
+spring:
+  config:
+    import:
+      - classpath:mysql.yml
+      - classpath:jpa.yml
+  datasource:
+    hikari:
+      write:
+        maximum-pool-size: 3
+        jdbc-url: jdbc:mysql://${/config/ats/prod/database/mysql/host}:3306/greeting?zeroDateTimeBehavior=convertToNull&charset=utf8mb4&socketTimeout=60000&allowPublicKeyRetrieval=true
+        password: ${/config/ats/prod/database/mysql/api/password}
+      read:
+        maximum-pool-size: 3
+        jdbc-url: jdbc:mysql://${/config/ats/prod/database/mysql/host_readonly}:3306/greeting?zeroDateTimeBehavior=convertToNull&charset=utf8mb4&socketTimeout=60000&allowPublicKeyRetrieval=true
+        password: ${/config/ats/prod/database/mysql/api/password}

@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      primary:
+        port: 27017
+        database: greeting
+        authentication-database: admin
+        username: api
+      search:
+        port: 27017
+        database: search
+        authentication-database: admin
+        username: api

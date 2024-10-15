@@ -1,0 +1,133 @@
+name: deploy_batch_sample
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: environment
+        description: 배포에 활용할 환경 변수 선택
+      job_name:
+        type: choice
+        description: '배포 대상 Job Name 선택'
+        required: true
+        options:
+          - foo
+          - bar
+          - baz
+      job_schedule:
+        type: choice
+        description: 'Job Cron Schedule 선택'
+        required: true
+        options:
+          - '0 0 * * 1-5'
+          - '5 * * * *'
+          - '0\,15\,30\,45 * * * *'
+
+env:
+  # IAM Setup
+  ASSUME_ROLE: arn:aws:iam::148109653756:role/Github-Actions-Role
+  ROLE_SESSION_NAME: github-actions-role
+  # K8S Setup
+  CLUSTER_NAME: greeting-dev
+  # Helm Setup
+  VALUES_NAME: batch.dev.values.yaml
+  # Slack Setup
+  SLACK_CHANNEL_ID: C01R7DP3TSB
+  # Environment Setup
+  ENV: dev,console-logging
+  AWS_REGION: ap-northeast-2
+  # ECR Setup
+  # ECR_REPOSITORY: greeting-ats-batch-dev
+  IS_PROD: false
+  # Deployment Setup
+  DEPLOY_NAME: greeting-ats-batch
+  GITHUB_USERNAME: dev-doodlin
+  GITHUB_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
+  REAL_STAGE: dev
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-batch:
+    runs-on: 8core-32gb
+    outputs: # deploy job으로 변수를 넘겨줄 때 사용합니다.
+      tag_name: ${{ steps.vars.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.ASSUME_ROLE }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set Tag Name
+        id: vars
+        run: echo "tag_name=${{ github.event.inputs.job_name }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "adopt"
+
+      - name: Build Project
+        uses: gradle/gradle-build-action@v2
+        with:
+          # build.gradle에서 realStage가 필요하다면 -PrealStage=${{ env.REAL_STAGE }} 추가 후 사용
+          arguments: "-Pstage=${{ env.ENV }} -PisProduction=${{ env.IS_PROD }} -PclusterName=${{ env.CLUSTER_NAME }} -PimageTag=${{ steps.vars.outputs.tag_name }} :batch:jib"
+          gradle-home-cache-includes: |
+            caches
+            wrapper
+          cache-read-only: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/dev' }}
+        env:
+          GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+          BE_SENTRY_AUTH_TOKEN: ${{ secrets.BE_SENTRY_AUTH_TOKEN }}
+
+  deploy-batch:
+    needs: [ build-batch ]
+    runs-on: 8core-32gb
+    permissions: write-all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.ASSUME_ROLE }}
+          role-session-name: ${{ env.ROLE_SESSION_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update KubeConfig
+        shell: bash
+        run: |
+          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region=${{ env.AWS_REGION }}
+
+      - name: Install Helm Client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - name: Helm install
+        run: |
+          LOWERCASE=$(echo ${{ github.event.inputs.job_name }} | tr '[:upper:]' '[:lower:]')
+          helm upgrade --install -f .helm/${{ env.VALUES_NAME }} \
+          --set name="greeting-ats-batch-${LOWERCASE}" \
+          --set images.tag="${{ needs.build-batch.outputs.tag_name }}" \
+          --set featureTemplate.cronjob.name="${{ env.DEPLOY_NAME }}-${LOWERCASE}" \
+          --set featureTemplate.cronjob.schedule="${{ github.event.inputs.job_schedule }}" \
+          --set cronjob.command="" \
+          --set cronjob.args="[--spring.batch.job.names=${{ github.event.inputs.job_name }}]" \
+          ${{ env.DEPLOY_NAME }}-${LOWERCASE} .helm

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-server-config
+  namespace: default
+data:
+  rabbitmq.virtualhost: "greeting_back"
+  sentry.dsn: "https://7cee9d620d404ab5b85e5c0f6752eaed@o744609.ingest.sentry.io/6407751"
+  

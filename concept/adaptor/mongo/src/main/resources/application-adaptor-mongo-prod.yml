@@ -1,0 +1,12 @@
+spring:
+  config:
+    import:
+      - classpath:mongo.yml
+  data:
+    mongodb:
+      primary:
+        host: ${/config/greeting_dev/mongo_host}
+        password: ${/config/ats/prod/database/mongo/api/password}
+      search:
+        host: ${/config/greeting_dev/mongo_host}
+        password: ${/config/ats/prod/database/mongo/api/password}

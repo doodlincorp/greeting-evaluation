@@ -1,0 +1,21 @@
+{{- if .Values.featureTemplate.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}-server-service
+  namespace: default
+  labels:
+    app: {{ .Values.name }}
+spec:
+  selector:
+    app: {{ .Values.name }}
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: metrics
+      port: 9404
+      targetPort: 9404
+  type: NodePort
+  externalTrafficPolicy: Local
+{{- end }}

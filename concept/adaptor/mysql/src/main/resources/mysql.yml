@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    hikari:
+      write:
+        username: api
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        minimum-idle: 2
+        idle-timeout: 295000
+        max-lifetime: 300000
+        connection-timeout: 180000
+      read:
+        username: api
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        minimum-idle: 2
+        idle-timeout: 295000
+        max-lifetime: 300000
+        connection-timeout: 180000
+  sql:
+    init:
+      encoding: UTF-8

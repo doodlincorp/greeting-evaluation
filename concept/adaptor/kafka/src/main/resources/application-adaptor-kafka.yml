@@ -1,0 +1,4 @@
+kafka:
+  default:
+    consumer: false # default false
+    group-id: greeting-concept

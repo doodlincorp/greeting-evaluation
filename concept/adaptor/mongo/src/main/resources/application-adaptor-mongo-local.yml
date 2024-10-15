@@ -1,0 +1,13 @@
+spring:
+  config:
+    import:
+      - classpath:mongo.yml
+  data:
+    mongodb:
+      primary:
+        host: cluster0.fw5nm.mongodb.net
+        password: ${/config/ats/dev/database/mongo/api/password}
+      search:
+        host: cluster0.fw5nm.mongodb.net
+        password: ${/config/ats/dev/database/mongo/api/password}
+

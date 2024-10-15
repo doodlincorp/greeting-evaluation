@@ -1,0 +1,10 @@
+spring:
+  config:
+    import:
+      - classpath:application-adaptor-mysql-local.yml
+  datasource:
+    hikari:
+      write:
+        maximum-pool-size: 3
+      read:
+        maximum-pool-size: 3

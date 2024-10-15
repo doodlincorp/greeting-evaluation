@@ -1,0 +1,452 @@
+{{- if .Values.featureTemplate.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-global
+  namespace: default
+  labels:
+    app: {{ .Values.name }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location @unauthorized {
+        add_header "Access-Control-Allow-Origin" "*" always;
+        add_header "Content-Type" "application/json" always;
+        return 401 '{"msg": "Unauthorized"}';
+      }
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-analytics-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-analytics-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-analytics-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-ats-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-ats-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+  - host: {{ .Values.name }}.greetinghr.com
+    http:
+      paths:
+          - path: /(ats/(?:swagger-ui|swagger-auth|oauth2|docs|api-docs)/?.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.name }}-server-service
+                port:
+                  number: 8080
+          - path: /ats(?!/internal)(?:/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.name }}-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-authn-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-authn-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /authn
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-authn-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-authz-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-authz-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /authz
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-authz-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-career-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-career-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /career
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-career-server-service
+                port:
+                  number: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-excel-worker
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-excel-worker
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /download
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-excel-worker-service
+                port:
+                  number: 3000
+          - path: /excel
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-excel-worker-service
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-mail-receiver-kotlin
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-mail-receiver-kotlin
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /receive
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-mail-receiver-kotlin-service
+                port:
+                  number: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-notification-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-notification-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /notification
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-notification-server-service
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-payment-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-payment-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /payment
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-payment-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-recruitment-api-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-recruitment-api-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /recruit
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-recruitment-api-server-service
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-server-service
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-server-service
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-server-service
+                port:
+                  number: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-trm-authz-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-trm-authz-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /trm-authz
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-trm-authz-server-service
+                port:
+                  number: 8080
+          - path: /trm-integrate
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-trm-authz-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-trm-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-trm-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /trm
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-trm-server-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name }}-workspace-server
+  namespace: default
+  labels:
+    app: {{ .Values.name }}-workspace-server
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+    nginx.ingress.kubernetes.io/auth-url: "http://greeting-authn-server-service.default.svc.cluster.local:8080/internal/validate/token"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Greeting-Auth, X-Greeting-Career-Auth, X-Greeting-User-Id, X-Greeting-Career-Group-Id"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      error_page 401 = @unauthorized;
+spec:
+  rules:
+    - host: {{ .Values.name }}.greetinghr.com
+      http:
+        paths:
+          - path: /workspace
+            pathType: Prefix
+            backend:
+              service:
+                name: greeting-workspace-server-service
+                port:
+                  number: 8080
+{{- end }}

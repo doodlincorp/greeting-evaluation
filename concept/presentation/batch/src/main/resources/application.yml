@@ -1,0 +1,25 @@
+# common
+spring:
+  batch:
+    jdbc:
+      table-prefix: ATS_BATCH_
+    job:
+      enabled: true
+
+  # 로컬 프로필을 사용했을 때, 하위 모듈에 포함되는 설정 파일 참조를 선언하는 부분이다.
+  profiles:
+    group:
+      local:
+        - presentation-starter
+        - business-domain
+        - business-app
+        - adaptor-redis-local
+        - adaptor-mongo-local
+        - adaptor-mysql-local-batch
+        - adaptor-kafka # 이것도 local, dev 등으로 분리해야 하는데, spring kafka 라이브러리에 묶여 있어서 보류
+        - kafka # doodlin.messaging:kafka 라이브러리 내부 설정을 사용하기 위해 필요한 설정
+
+logging:
+  level:
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE

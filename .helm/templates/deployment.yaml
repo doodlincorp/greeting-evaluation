@@ -1,0 +1,403 @@
+{{- if .Values.featureTemplate.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  namespace: default
+  labels:
+    app: {{ .Values.name }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      serviceAccountName: greeting-api-account
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ .Values.name }}
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      volumes:
+        - name: heap-dump-volume
+          emptyDir: {}
+      containers:
+        - name: "spring"
+          image: "{{ .Values.images.repository }}/{{ .Values.images.name }}:{{ .Values.images.tag }}"
+          volumeMounts:
+            - name: heap-dump-volume
+              mountPath: /var/dump
+          ports:
+            - containerPort: 8080
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 15"]
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 80
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 100
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          imagePullPolicy: "{{ .Values.images.pullPolicy }}"
+          resources:
+            requests:
+              memory: "{{ .Values.deployment.memoryRequest }}"
+              cpu: "250m"
+            limits:
+              memory: "{{ .Values.deployment.memoryLimit }}"
+          env:
+            - name: ENV
+              value: "{{ .Values.env }}"
+            - name: RELEASE_VERSION
+              value: "{{ .Values.images.tag }}"
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: jwt.key
+            - name: SERIALIZER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: flask.key
+            - name: SERIALIZER_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: flask.salt
+            - name: SENTRY_DSN
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.name }}-server-config
+                  key: sentry.dsn
+            - name: SENTRY_AUTO_INIT
+              value: "true"
+            - name: MYSQL_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: mysql.api.pw
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mysql.host
+            - name: MYSQL_HOST_RO
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mysql.host_ro
+            - name: MYSQL_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mysql.api.user
+            - name: MYSQL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mysql.name
+            - name: MONGODB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mongo.host
+            - name: MONGODB_SEARCH_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mongo.search.database
+            - name: MONGODB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mongo.api.user
+            - name: MONGODB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: mongo.name
+            - name: MONGODB_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: mongo.api.pw
+            - name: MESSAGE_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: message.api.key
+            - name: MESSAGE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: message.api.secret
+            - name: PAYMENT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: payment.host
+            - name: GCP_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: gcp.client.id
+            - name: GCP_CALENDAR_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: gcp.calendar.api.key
+            - name: GCP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: gcp.client.secret
+            - name: GCP_SCOPE
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: gcp.scope
+            - name: AZURE_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: azure.client.id
+            - name: AZURE_TENANT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: azure.tenant.id
+            - name: AZURE_SCOPE
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: azure.scope
+            - name: AZURE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: azure.client.secret
+            - name: NCP_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: ncp.access_key
+            - name: NCP_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: ncp.secret_key
+            - name: KAKAO_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: kakao.key
+            - name: KAKAO_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: kakao.secret
+            - name: KAKAO_GROUP_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: kakao.group-key
+            - name: KAKAO_DEFAULT_SENDER
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: kakao.default-sender-key
+            - name: KAFKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: kafka.bootstrap.server
+            - name: KAFKA_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: kafka.user
+            - name: KAFKA_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: kafka.pw
+            - name: KAFKA_DEAD_LETTER_WORKSPACE_CODE
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: slack.kafka.dead-letter.workspace_code
+            - name: KAFKA_DEAD_LETTER_CHANNEL_CODE
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: slack.kafka.dead-letter.channel_code
+            - name: KAFKA_DEAD_LETTER_CHANNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: slack.kafka.dead-letter.channel_token
+            - name: RABBITMQ_VIRTUALHOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.name }}-server-config
+                  key: rabbitmq.virtualhost
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: rabbitmq.host
+            - name: RABBITMQ_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: rabbitmq.producer.user
+            - name: RABBITMQ_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: rabbitmq.producer.pw
+            - name: CRYPTO_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: crypto.host
+            - name: CRYPTO_LAMBDA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: crypto_lambda.host
+            - name: UNARCHIVE_LAMBDA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: unarchive_lambda.host
+            - name: PRICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: price.host
+            - name: RECRUIT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: recruit.host
+            - name: ANALYTICS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: analytics.host
+            - name: AUTHZ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: authz.host
+            - name: AI_RESUME_PARSER_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: ai.resume_parser.host
+            - name: AUTHN_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: authn.host
+            - name: ATS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: ats.host
+            - name: MAIL_TEMPLATE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: template.host
+            - name: TOSS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: toss.key
+            - name: TRM_AUTHZ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: trm.authz.host
+            - name: SLACK_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: slack.client_id
+            - name: SLACK_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: slack.key
+            - name: SWAGGER_OAUTH2_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: swagger.client.id
+            - name: SWAGGER_OAUTH2_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: swagger.client.secret
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://$(NODE_IP):4317
+            - name: OTEL_DROP_ROUTES
+              value: "/actuator/.*,.*/metrics,.*/prometheus"
+            - name: OTEL_DROP_METHODS
+              value: "OPTIONS"
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: redis.host
+            - name: REDIS_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: greeting-default-config
+                  key: redis.api.user
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: greeting-default-secret
+                  key: redis.api.pw
+            - name: OTEL_JAVAAGENT_ENABLED
+              value: "true"
+            - name: DD_LOGS_INJECTION
+              value: "false"
+      terminationGracePeriodSeconds: 50
+      nodeSelector:
+        greeting.server/role: backend-server
+{{- end }}
