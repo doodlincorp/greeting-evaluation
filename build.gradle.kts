@@ -36,7 +36,7 @@ tasks {
 }
 
 allprojects {
-    group = "doodlin.spring-boot-template"
+    group = "doodlin.greeting.evaluation"
     version = "1.0.0"
 
     repositories {
