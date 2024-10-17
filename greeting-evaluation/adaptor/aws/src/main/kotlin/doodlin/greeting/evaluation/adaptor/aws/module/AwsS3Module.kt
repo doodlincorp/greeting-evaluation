@@ -1,6 +1,6 @@
-package doodlin.greeting.concept.adaptor.aws.module
+package doodlin.greeting.evaluation.adaptor.aws.module
 
-import doodlin.greeting.concept.adaptor.aws.S3Path
+import doodlin.greeting.evaluation.adaptor.aws.S3Path
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.http.HttpStatusCode
 import software.amazon.awssdk.services.s3.S3Client

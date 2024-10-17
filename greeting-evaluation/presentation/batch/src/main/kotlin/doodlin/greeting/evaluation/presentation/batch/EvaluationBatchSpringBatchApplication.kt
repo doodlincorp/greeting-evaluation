@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.batch
+package doodlin.greeting.evaluation.presentation.batch
 
 import org.springframework.boot.ExitCodeGenerator
 import org.springframework.boot.autoconfigure.SpringBootApplication

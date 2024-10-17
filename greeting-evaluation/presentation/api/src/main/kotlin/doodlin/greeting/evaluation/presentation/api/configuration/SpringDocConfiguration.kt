@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.api.configuration
+package doodlin.greeting.evaluation.presentation.api.configuration
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI

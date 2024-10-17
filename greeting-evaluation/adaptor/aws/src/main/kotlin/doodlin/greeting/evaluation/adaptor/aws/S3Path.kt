@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.adaptor.aws
+package doodlin.greeting.evaluation.adaptor.aws
 
 internal data class S3Path(
     val bucket: String,

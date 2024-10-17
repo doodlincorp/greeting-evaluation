@@ -1,5 +1,6 @@
 package doodlin.greeting.evaluation.adaptor.redis.config
 
+import doodlin.greeting.evaluation.adaptor.redis.repository.crud.Repositories
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties

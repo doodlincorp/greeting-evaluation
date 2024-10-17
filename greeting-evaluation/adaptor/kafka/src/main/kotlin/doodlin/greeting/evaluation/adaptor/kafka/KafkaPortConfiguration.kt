@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.adaptor.kafka
+package doodlin.greeting.evaluation.adaptor.kafka
 
 import org.apache.kafka.clients.producer.Producer
 import org.springframework.context.annotation.Bean

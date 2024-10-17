@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.batch.job
+package doodlin.greeting.evaluation.presentation.batch.job
 
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext

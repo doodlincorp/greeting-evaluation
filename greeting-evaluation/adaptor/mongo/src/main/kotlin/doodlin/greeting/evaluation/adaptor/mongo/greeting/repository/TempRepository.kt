@@ -1,3 +1,3 @@
-package doodlin.greeting.concept.adaptor.mongo.greeting.repository
+package doodlin.greeting.evaluation.adaptor.mongo.greeting.repository
 
 class TempRepository

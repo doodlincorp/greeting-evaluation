@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.batch.constants
+package doodlin.greeting.evaluation.presentation.batch.constants
 
 internal object BatchProcessNameFormats {
     const val STEP_NAME_FORMAT: String = "%s-Step"

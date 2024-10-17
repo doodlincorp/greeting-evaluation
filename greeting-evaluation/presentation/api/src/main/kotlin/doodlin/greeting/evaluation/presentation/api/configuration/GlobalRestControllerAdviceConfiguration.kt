@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.api.configuration
+package doodlin.greeting.evaluation.presentation.api.configuration
 
 import doodlin.commons.http.handler.EnableGlobalRestControllerAdvice
 import org.springframework.context.annotation.Configuration

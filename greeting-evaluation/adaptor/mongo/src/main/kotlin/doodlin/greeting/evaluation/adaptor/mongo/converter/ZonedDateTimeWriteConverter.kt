@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.adaptor.mongo.converter
+package doodlin.greeting.evaluation.adaptor.mongo.converter
 
 import org.springframework.core.convert.converter.Converter
 import java.time.ZonedDateTime

@@ -1,6 +1,6 @@
-package doodlin.greeting.concept.adaptor.aws.configuration
+package doodlin.greeting.evaluation.adaptor.aws.configuration
 
-import doodlin.greeting.concept.adaptor.aws.module.AwsS3Module
+import doodlin.greeting.evaluation.adaptor.aws.module.AwsS3Module
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider

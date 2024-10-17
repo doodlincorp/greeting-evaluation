@@ -1,8 +1,8 @@
-package doodlin.greeting.concept.presentation.batch.job
+package doodlin.greeting.evaluation.presentation.batch.job
 
-import doodlin.greeting.concept.presentation.batch.constants.BatchProcessNameFormats
-import doodlin.greeting.concept.presentation.batch.constants.ExitStatusCodes
-import doodlin.greeting.concept.presentation.batch.job.tasklet.DefaultRecoveryTasklet
+import doodlin.greeting.evaluation.presentation.batch.constants.BatchProcessNameFormats
+import doodlin.greeting.evaluation.presentation.batch.constants.ExitStatusCodes
+import doodlin.greeting.evaluation.presentation.batch.job.tasklet.DefaultRecoveryTasklet
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step

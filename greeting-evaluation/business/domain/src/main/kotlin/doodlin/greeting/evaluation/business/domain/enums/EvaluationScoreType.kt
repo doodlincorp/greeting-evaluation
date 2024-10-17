@@ -1,4 +1,4 @@
-package doodlin.greeting.evaluation.business.domain.model.evaluation_process.enums
+package doodlin.greeting.evaluation.business.domain.enums
 
 enum class EvaluationScoreType(val scoreType: Int) {
     STEP3(EvaluationScoreTypeConstant.STEP3),

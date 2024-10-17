@@ -1,6 +1,6 @@
-package doodlin.greeting.concept.presentation.batch.job
+package doodlin.greeting.evaluation.presentation.batch.job
 
-import doodlin.greeting.concept.presentation.batch.constants.PropertyNames
+import doodlin.greeting.evaluation.presentation.batch.constants.PropertyNames
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.StepContribution

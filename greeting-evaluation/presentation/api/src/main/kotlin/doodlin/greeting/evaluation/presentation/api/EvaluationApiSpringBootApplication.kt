@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.api
+package doodlin.greeting.evaluation.presentation.api
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

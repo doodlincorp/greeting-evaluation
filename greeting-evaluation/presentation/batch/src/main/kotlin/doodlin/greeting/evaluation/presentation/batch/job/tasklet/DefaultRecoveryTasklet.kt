@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.presentation.batch.job.tasklet
+package doodlin.greeting.evaluation.presentation.batch.job.tasklet
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

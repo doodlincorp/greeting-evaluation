@@ -1,24 +1,25 @@
-package doodlin.greeting.evaluation.business.domain.model.evaluation_process
+package doodlin.greeting.evaluation.business.domain.evaluation_process.sub
 
 import java.time.ZonedDateTime
 
 data class EvaluationRemindSetting(
-    val id: Long = 0,
-    val workspaceId: Int,
-    val openingId: Int,
-    val processOnOpeningId: Int,
+    val id: Long,
+    val workspaceId: Long,
+    val openingId: Long,
+    val processOnOpeningId: Long,
     val remindAfterNDays: Int,
     val remindTime: String,
-    val enableRemind: Boolean = false,
-    val createDate: ZonedDateTime = ZonedDateTime.now(),
-    val updateDate: ZonedDateTime = ZonedDateTime.now(),
+    val enableRemind: Boolean,
+    val createDate: ZonedDateTime,
+    val updateDate: ZonedDateTime,
+    val deletedAt: ZonedDateTime?
 ) {
     companion object {
-        fun saveOf(
+        fun init(
             id: Long = 0,
-            workspaceId: Int,
-            openingId: Int,
-            processOnOpeningId: Int,
+            workspaceId: Long,
+            openingId: Long,
+            processOnOpeningId: Long,
             remindAfterNDays: Int,
             remindTime: String,
             enableRemind: Boolean
@@ -30,7 +31,10 @@ data class EvaluationRemindSetting(
                 processOnOpeningId = processOnOpeningId,
                 remindAfterNDays = remindAfterNDays,
                 remindTime = remindTime,
-                enableRemind = enableRemind
+                enableRemind = enableRemind,
+                createDate = ZonedDateTime.now(),
+                updateDate = ZonedDateTime.now(),
+                deletedAt = null
             )
         }
     }

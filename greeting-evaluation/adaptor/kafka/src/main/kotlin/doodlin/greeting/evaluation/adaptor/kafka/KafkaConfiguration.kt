@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.adaptor.kafka
+package doodlin.greeting.evaluation.adaptor.kafka
 
 import doodlin.messaging.kafka.producer.LowLevelProducerFactory
 import org.apache.kafka.clients.producer.Producer

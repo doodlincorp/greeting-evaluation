@@ -1,4 +1,4 @@
-package doodlin.greeting.concept.adaptor.mongo.search.config
+package doodlin.greeting.evaluation.adaptor.mongo.search.config
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
