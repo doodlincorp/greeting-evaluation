@@ -49,7 +49,6 @@ include(":evaluation-business-application")
 include(":evaluation-business-domain")
 include(":evaluation-presentation-api")
 include(":evaluation-presentation-batch")
-//include(":evaluation-presentation-consumer")
 
 project(":evaluation-adaptor-kafka").projectDir = file("greeting-evaluation/adaptor/kafka")
 project(":evaluation-adaptor-mongo").projectDir = file("greeting-evaluation/adaptor/mongo")
@@ -60,4 +59,3 @@ project(":evaluation-business-application").projectDir = file("greeting-evaluati
 project(":evaluation-business-domain").projectDir = file("greeting-evaluation/business/domain")
 project(":evaluation-presentation-api").projectDir = file("greeting-evaluation/presentation/api")
 project(":evaluation-presentation-batch").projectDir = file("greeting-evaluation/presentation/batch")
-//project(":concept-presentation-consumer").projectDir = file("concept/presentation/consumer")
