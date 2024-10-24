@@ -5,5 +5,4 @@ data class RequestPersonalityTest(
     val personalityTestIntegrationWorkspaceId: Long,
     val personalityTestPaperId: Long,
     val openingId: Long
-) {
-}
+)

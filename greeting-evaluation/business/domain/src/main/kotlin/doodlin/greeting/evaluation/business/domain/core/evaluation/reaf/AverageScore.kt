@@ -20,5 +20,4 @@ data class LegacyAverageScore(
     val createDate: ZonedDateTime,
     val updateDate: ZonedDateTime,
     val deletedAt: ZonedDateTime?
-) {
-}
+)

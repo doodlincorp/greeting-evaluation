@@ -16,5 +16,4 @@ data class EvaluationPaperCalculationTemplate(
     val updateDate: ZonedDateTime,
     // 상세 평가 템플릿 계산 삭제일
     val deletedAt: ZonedDateTime?
-) {
-}
+)

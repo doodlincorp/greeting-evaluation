@@ -4,5 +4,4 @@ data class EvaluationGroup(
     val id: Long,
     val evaluationPaperId: Long,
     val applicantId: Long
-) {
-}
+)

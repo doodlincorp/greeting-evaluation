@@ -1,4 +1,4 @@
-package doodlin.greeting.evaluation.business.domain.core.evaluation_paper.reaf
+package doodlin.greeting.evaluation.business.domain.core.evaluation_remind
 
 import java.time.ZonedDateTime
 

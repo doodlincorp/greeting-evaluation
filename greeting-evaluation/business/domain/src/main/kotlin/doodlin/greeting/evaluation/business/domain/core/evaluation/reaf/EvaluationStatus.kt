@@ -18,5 +18,4 @@ data class LegacyEvaluationStatus(
     val createdAt: ZonedDateTime,
     val updatedAt: ZonedDateTime,
     val deletedAt: ZonedDateTime?
-) {
-}
+)

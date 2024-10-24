@@ -23,5 +23,4 @@ data class EvaluationPaperTemplate(
     val createDate: ZonedDateTime,
     val updateDate: ZonedDateTime,
     val deletedAt: ZonedDateTime?
-) {
-}
+)

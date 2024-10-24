@@ -9,5 +9,4 @@ data class Evaluator(
     val createdAt: ZonedDateTime,
     val updatedAt: ZonedDateTime,
     val deletedAt: ZonedDateTime?
-) {
-}
+)

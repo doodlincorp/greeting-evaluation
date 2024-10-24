@@ -5,5 +5,4 @@ data class PersonalityTester(
     val applicantId: Long,
     val requestPersonalityTestId: Long,
     val personalityTestResults: Set<PersonalityTestResult>
-) {
-}
+)

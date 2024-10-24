@@ -12,5 +12,4 @@ class EvaluationHistory(
     val createdAt: ZonedDateTime,
     val updatedAt: ZonedDateTime,
     val deletedAt: ZonedDateTime?
-) {
-}
+)
